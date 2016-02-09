@@ -33,6 +33,8 @@ const int wiper0writeAddr = B00000000;
 const int wiper1writeAddr = B00010000;
 
 
+int selected_wavetable = 0;
+
 int t=0;
 unsigned int tt=0;
 int mode = 0;
@@ -145,7 +147,9 @@ void callback() {
   int32_t d = 0;
   for (int i=0; i<spinor_count; i++) {
     //d += (spinors[i].a*sin(float(spinors[i].t)*6.28/TOP)); //float(tt*f*2*3.14)/23000));
-    d += (spinors[i].m*((signed char)pgm_read_byte_near(wavetable + int(spinors[i].t)))); //float(tt*f*2*3.14)/23000));
+    d += (spinors[i].m*((signed char)pgm_read_byte_near(
+            wavetables + selected_wavetable*samplelenght
+            + int((int32_t(spinors[i].t)*samplelenght)/TOP)))); //float(tt*f*2*3.14)/23000));
   }
   int divisor = (playing_voices <= 0? 254: 254*playing_voices);
   d = d/divisor;
@@ -156,6 +160,8 @@ void callback() {
   t++;
   tt+=f;
   if (tt >= TOP) tt = tt%TOP;
+//  if (t && 0b11111 == 0) selected_wavetable++;
+//  if (selected_wavetable >= samplecount) selected_wavetable=0;
 }
 
 void setup() {
@@ -214,11 +220,6 @@ char *ftoa(char *a, double f, int precision)
 
 //3928
 
-class Twistor {
-  public:
-    Twistor();
-};
-
 void loop() {
 //  unsigned char v = analogRead(A2);
   if (t >= 10) {
@@ -251,6 +252,12 @@ void loop() {
         f = 0;
         volume = 0;
         digitalWrite(9, LOW);
+      }
+      if ((s&0xf0) == 0xb0) {//controller change
+        // so we try to change wavetable number
+        char cnt = Serial.read(); // controller id
+        char val = Serial.read(); // value
+        selected_wavetable = val / 4;
       }
 
 //      f = s * 10;
