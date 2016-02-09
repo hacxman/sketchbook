@@ -4,3 +4,5 @@ ARDUINO_LIBS = Wire SPI Adafruit-GFX-Library-master Adafruit_SSD1306-master Enco
 AVRDUDE_CONF=/etc/avrdude/avrdude.conf
 #ARDUINO_LIBS = Adafruit-GFX-Library-master
 include /usr/share/arduino/Arduino.mk
+wavetable.h: m.py
+	python m.py wavetable.h
